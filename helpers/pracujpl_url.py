@@ -16,10 +16,9 @@ skills_map = {
     'java': '38'
 }
 
-def create_url(category: str = '', exp: str = '', skills: str = '') -> str:
+def create_url(category: str = '', exp: str = '', skill: str = '') -> str:
     url = 'https://it.pracuj.pl/praca?'
     params = []
-    skills_str = ','.join([skills_map[skill.lower()] for skill in skills])
     
     if len(category) > 0:
         if category in categories_map:
@@ -28,8 +27,8 @@ def create_url(category: str = '', exp: str = '', skills: str = '') -> str:
             params.append(f'its={category.lower()}')
     if len(exp) > 0:
         params.append(f'et={experience_map[exp.lower()]}')
-    if len(skills) > 0:
-        params.append(f'iith={skills_str}')
+    if len(skill) > 0:
+        params.append(f'iith={skills_map[skill.lower()]}')
     
     params = '&'.join(params)
     
