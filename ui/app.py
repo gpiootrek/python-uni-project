@@ -1,13 +1,11 @@
 import streamlit as st
-import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from sites.nofluffjobs.scraper import scrape as nfj_scrape
 from sites.pracujpl.scraper import scrape as pracujpl_scrape
-from functools import reduce
-from collections import Counter
-from statistics import mean
+from job_analysis import *
+
 
 categories_options = ["Frontend", "Backend", "Data"]
 skills_options = ["", "Java", "JavaScript", "SQL", "HTML", "Python"]
@@ -23,10 +21,10 @@ def app() -> None:
     if 'loading' not in st.session_state:
         st.session_state.loading = False
         
-    st.title("Analiza ofert pracy")
+    st.title("Job offers analysis")
     setup_inputs()
     st.button(
-        "Analizuj",
+        "Analize",
         type="primary",
         on_click=on_analyze_click,
         disabled=st.session_state.get("disabled_analysis", True) or st.session_state.get("loading", True)
@@ -37,7 +35,7 @@ def setup_inputs() -> None:
     global categories_selection, exp_selection, skills_selection
     
     categories_selection = st.segmented_control(
-        "Kategoria",
+        "Category",
         categories_options,
         selection_mode="single",
         on_change=set_state,
@@ -45,7 +43,7 @@ def setup_inputs() -> None:
         disabled=st.session_state.get("loading", True)
     )
     exp_selection = st.pills(
-        "Doświadczenie",
+        "Experience",
         exp_options,
         selection_mode="single",
         key="exp",
@@ -53,7 +51,7 @@ def setup_inputs() -> None:
         disabled=st.session_state.get("loading", True)
     )
     skills_selection = st.selectbox(
-        'Umiejętności',
+        'Skills',
         skills_options,
         on_change=set_state,
         disabled=st.session_state.get("loading", True)
@@ -75,7 +73,13 @@ def on_analyze_click() -> None:
         results = [pracujpl_results, nfj_results]
 
     st.session_state.loading = False
-    display_results(results)
+    
+    # Use ResultAnalyzer for skill frequency and overall analysis
+    result_analyzer = ResultAnalyzer(results)
+    analysis_results = result_analyzer.analyze()
+    
+    # Display results using Streamlit
+    display_results(analysis_results)
 
 
 def set_state() -> None:
@@ -85,22 +89,24 @@ def set_state() -> None:
         st.session_state.disabled_analysis = True
 
 
-def display_results(results: list) -> None:
-    offers_count = reduce(lambda acc, x: acc + x['offers_count'], results, 0)
-    st.write(f'Przeanalizowanych ofert: {offers_count}')
-    primary_requirements = Counter([req for result in results for req in result["primary_requirements"]]).most_common()
-    secondary_requirements = Counter([req for result in results for req in result["secondary_requirements"]]).most_common()
-    primary_df = pd.DataFrame(primary_requirements, columns=["Umiejętność", "Liczba wystąpień"])
-    secondary_df = pd.DataFrame(secondary_requirements, columns=["Umiejętność", "Liczba wystąpień"])
-    
-    st.write("Wymagane umiejętności")
-    st.dataframe(primary_df)
-    st.write("Mile widziane umiejętności")
-    st.dataframe(secondary_df)
-    
-    salaries_lower_ranges = [lower for result in results for lower in result["salary_lower_ranges"]]
-    salaries_upper_ranges = [upper for result in results for upper in result["salary_upper_ranges"]]
-    col1, col2 = st.columns(2)
-    col1.metric("Średnie zarobki min.", f'{round(mean(salaries_lower_ranges), 2)} PLN')
-    col2.metric("Średnie zarobki max.", f'{round(mean(salaries_upper_ranges), 2)} PLN')
+def display_results(analysis_results) -> None:
+    # Display total offers
+    st.write(f"### Total Offers: {analysis_results['total_offers']}")
 
+    # Display salary statistics
+    Visualization.display_salary_statistics(analysis_results["salary_statistics"])
+
+    # Skill frequency table
+    Visualization.display_skill_frequency_table(analysis_results)
+
+    # Visualize primary skill frequency
+    Visualization.plot_skill_frequency(
+        analysis_results["skill_frequency"]["primary"],
+        title="Top 5 Most Frequently Required Primary Skills"
+    )
+
+    # Visualize secondary skill frequency
+    Visualization.plot_skill_frequency(
+        analysis_results["skill_frequency"]["secondary"],
+        title="Top 5 Most Frequently Required Secondary Skills"
+    )
