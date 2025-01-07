@@ -1,4 +1,5 @@
 # Projekt - analiza ofert pracy
+Autorzy: Aleksander Folfas, Piotr Gołąb
 
 Projekt skupia się na analizie ofert pracy. Został zrealizowany za pomocą paradygmatów programowania funkcyjnego oraz obiektowego, wykorzystanych kolejno do `web scrapingu` oraz utworzenia UI wyświetlającego wyniki krótkiej analizy.
 
