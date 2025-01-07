@@ -43,3 +43,7 @@ Projekt skupia się na analizie ofert pracy. Został zrealizowany za pomocą par
 ## Wyniki analizy - wymagania - wykresy
 
 ![Wyniki analizy - wymagania - wykresy](./assets/results-3.jpg "Wyniki analizy - wymagania - wykresy")
+
+## Testy
+
+![Testy](./testResults.png)
