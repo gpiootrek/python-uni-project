@@ -1,5 +1,0 @@
-pandas
-streamlit
-altair
-selenium
-webdriver_manager
